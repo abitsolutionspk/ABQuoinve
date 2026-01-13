@@ -1,0 +1,7 @@
+{
+  "name": "AB Solutions Quotation & Invoice App",
+  "description": "A comprehensive mobile-first business management tool for managing items, customers, quotations, and invoices with role-based access.",
+  "requestFramePermissions": [
+    "camera"
+  ]
+}
