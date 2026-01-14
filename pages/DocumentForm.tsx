@@ -2,6 +2,8 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { AppState, Document, DocumentItem } from '../types';
+// Fixed: Type must be imported from @google/genai, not from local types
+import { GoogleGenAI, Type } from "@google/genai";
 
 interface DocumentFormProps {
   type: 'Quotation' | 'Invoice';
@@ -24,6 +26,8 @@ const DocumentForm: React.FC<DocumentFormProps> = ({ type, state, onUpdate }) =>
   const [selectedItemId, setSelectedItemId] = useState('');
   const [selectedQty, setSelectedQty] = useState(1);
   const [selectedRate, setSelectedRate] = useState<number>(0);
+  const [smartAddText, setSmartAddText] = useState('');
+  const [isSmartLoading, setIsSmartLoading] = useState(false);
 
   useEffect(() => {
     if (id) {
@@ -35,7 +39,6 @@ const DocumentForm: React.FC<DocumentFormProps> = ({ type, state, onUpdate }) =>
     }
   }, [id, state, type]);
 
-  // Update rate when selected item changes
   useEffect(() => {
     const item = state.items.find(i => i.id === selectedItemId);
     if (item) {
@@ -67,6 +70,72 @@ const DocumentForm: React.FC<DocumentFormProps> = ({ type, state, onUpdate }) =>
     }
   };
 
+  const handleSmartAdd = async () => {
+    if (!smartAddText.trim()) return;
+    setIsSmartLoading(true);
+    try {
+      // Fixed: Always create a new instance before call to ensure latest API key
+      const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+      const availableItemsStr = state.items.map(i => `${i.id}: ${i.name}`).join(', ');
+      
+      const response = await ai.models.generateContent({
+        model: 'gemini-3-flash-preview',
+        contents: `Based on this list of available business items: [${availableItemsStr}], 
+                  parse the following request: "${smartAddText}". 
+                  Identify which items are being requested and in what quantity.`,
+        config: {
+          responseMimeType: 'application/json',
+          // Fixed: Added responseSchema for robust JSON structure
+          responseSchema: {
+            type: Type.ARRAY,
+            items: {
+              type: Type.OBJECT,
+              properties: {
+                id: { type: Type.STRING, description: 'The ID of the item' },
+                qty: { type: Type.NUMBER, description: 'The quantity requested' }
+              },
+              required: ['id', 'qty']
+            }
+          }
+        }
+      });
+
+      // Fixed: Use .text property directly
+      const result = JSON.parse(response.text || '[]');
+      const newItems: DocumentItem[] = [];
+
+      result.forEach((match: any) => {
+        const originalItem = state.items.find(i => i.id === String(match.id));
+        if (originalItem) {
+          newItems.push({
+            itemId: originalItem.id,
+            name: originalItem.name,
+            rate: originalItem.rate,
+            quantity: match.qty || 1,
+            total: originalItem.rate * (match.qty || 1)
+          });
+        }
+      });
+
+      if (newItems.length > 0) {
+        const updatedItems = [...doc.items, ...newItems];
+        setDoc({
+          ...doc,
+          items: updatedItems,
+          totalAmount: updatedItems.reduce((acc, curr) => acc + curr.total, 0)
+        });
+        setSmartAddText('');
+      } else {
+        alert("AI couldn't find matching items in your inventory.");
+      }
+    } catch (error) {
+      console.error("Smart Add Error:", error);
+      alert("AI failed to process request.");
+    } finally {
+      setIsSmartLoading(false);
+    }
+  };
+
   const removeItem = (index: number) => {
     const updatedItems = doc.items.filter((_, i) => i !== index);
     setDoc({
@@ -82,7 +151,6 @@ const DocumentForm: React.FC<DocumentFormProps> = ({ type, state, onUpdate }) =>
       alert('Please select a customer and add at least one item.');
       return;
     }
-
     const collection = type === 'Quotation' ? state.quotations : state.invoices;
     if (id) {
       const updated = collection.map(d => d.id === id ? { ...d, ...doc } : d);
@@ -101,118 +169,117 @@ const DocumentForm: React.FC<DocumentFormProps> = ({ type, state, onUpdate }) =>
         <h1 className="text-xl font-bold">{id ? 'Edit' : 'New'} {type}</h1>
       </header>
 
-      <form onSubmit={handleSubmit} className="p-4 space-y-4 pb-20">
-        <div className="bg-white p-4 rounded-xl shadow-sm border space-y-4">
-          <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1">Customer</label>
-            <select
-              required
-              className="w-full p-3 border rounded-xl outline-none focus:ring-2 focus:ring-blue-500"
-              value={doc.customerId}
-              onChange={e => setDoc({ ...doc, customerId: e.target.value })}
-            >
-              <option value="">Select Customer</option>
-              {state.customers.map(c => (
-                <option key={c.id} value={c.id}>{c.name}</option>
-              ))}
-            </select>
+      <div className="p-4 space-y-4 pb-24">
+        {/* Smart Add AI Tool */}
+        <div className="bg-gradient-to-r from-blue-600 to-indigo-700 p-4 rounded-xl shadow-lg text-white">
+          <div className="flex items-center gap-2 mb-2">
+            <i className="fa-solid fa-wand-magic-sparkles animate-sparkle"></i>
+            <h3 className="font-bold text-sm">AI Smart-Add</h3>
           </div>
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1">Number</label>
-              <input
-                type="text"
-                className="w-full p-3 border rounded-xl bg-slate-50"
-                value={doc.number}
-                readOnly
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1">Date</label>
-              <input
-                type="date"
-                required
-                className="w-full p-3 border rounded-xl outline-none"
-                value={doc.date}
-                onChange={e => setDoc({ ...doc, date: e.target.value })}
-              />
-            </div>
-          </div>
-        </div>
-
-        <div className="bg-white p-4 rounded-xl shadow-sm border space-y-4">
-          <h2 className="font-bold text-slate-800">Add Items</h2>
-          <div className="grid grid-cols-1 gap-2">
-            <select
-              className="w-full p-3 border rounded-xl outline-none focus:ring-2 focus:ring-blue-500"
-              value={selectedItemId}
-              onChange={e => setSelectedItemId(e.target.value)}
+          <div className="flex gap-2">
+            <input 
+              type="text"
+              placeholder="e.g. Add 3 web designs..."
+              className="flex-1 p-2 rounded-lg text-slate-900 text-sm outline-none"
+              value={smartAddText}
+              onChange={e => setSmartAddText(e.target.value)}
+              onKeyPress={e => e.key === 'Enter' && handleSmartAdd()}
+            />
+            <button 
+              onClick={handleSmartAdd}
+              disabled={isSmartLoading}
+              className="bg-white text-blue-600 px-3 py-2 rounded-lg font-bold text-xs hover:bg-blue-50 disabled:opacity-50"
             >
-              <option value="">Select Item</option>
-              {state.items.map(i => (
-                <option key={i.id} value={i.id}>{i.name} (Base Rate: Rs {i.rate})</option>
-              ))}
-            </select>
-            <div className="flex gap-2">
-              <div className="flex-1">
-                <label className="block text-[10px] font-bold text-slate-400 uppercase mb-1 ml-1">Rate</label>
-                <input
-                  type="number"
-                  placeholder="Rate"
-                  className="w-full p-3 border rounded-xl outline-none focus:ring-2 focus:ring-blue-500"
-                  value={selectedRate}
-                  onChange={e => setSelectedRate(parseFloat(e.target.value) || 0)}
-                />
-              </div>
-              <div className="w-24">
-                <label className="block text-[10px] font-bold text-slate-400 uppercase mb-1 ml-1">Qty</label>
-                <input
-                  type="number"
-                  min="1"
-                  className="w-full p-3 border rounded-xl outline-none"
-                  value={selectedQty}
-                  onChange={e => setSelectedQty(parseInt(e.target.value) || 1)}
-                />
-              </div>
-            </div>
-            <button
-              type="button"
-              onClick={addItem}
-              disabled={!selectedItemId}
-              className={`w-full py-4 mt-2 text-white font-bold rounded-xl transition-colors ${selectedItemId ? 'bg-slate-800 hover:bg-slate-700' : 'bg-slate-300 cursor-not-allowed'}`}
-            >
-              ADD TO {type.toUpperCase()}
+              {isSmartLoading ? '...' : 'ADD'}
             </button>
           </div>
         </div>
 
-        <div className="bg-white p-4 rounded-xl shadow-sm border">
-          <h2 className="font-bold text-slate-800 mb-4">Summary ({doc.items.length} items)</h2>
-          <div className="space-y-3">
-            {doc.items.map((item, index) => (
-              <div key={index} className="flex justify-between items-center py-2 border-b border-slate-50 last:border-0">
-                <div>
-                  <p className="font-medium text-slate-800">{item.name}</p>
-                  <p className="text-xs text-slate-400">{item.quantity} x Rs {item.rate.toLocaleString()}</p>
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div className="bg-white p-4 rounded-xl shadow-sm border space-y-4">
+            <div>
+              <label className="block text-sm font-medium text-slate-700 mb-1">Customer</label>
+              <select
+                required
+                className="w-full p-3 border rounded-xl outline-none focus:ring-2 focus:ring-blue-500"
+                value={doc.customerId}
+                onChange={e => setDoc({ ...doc, customerId: e.target.value })}
+              >
+                <option value="">Select Customer</option>
+                {state.customers.map(c => (
+                  <option key={c.id} value={c.id}>{c.name}</option>
+                ))}
+              </select>
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-1">Number</label>
+                <input type="text" className="w-full p-3 border rounded-xl bg-slate-50" value={doc.number} readOnly />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-1">Date</label>
+                <input type="date" required className="w-full p-3 border rounded-xl outline-none" value={doc.date} onChange={e => setDoc({ ...doc, date: e.target.value })} />
+              </div>
+            </div>
+          </div>
+
+          <div className="bg-white p-4 rounded-xl shadow-sm border space-y-4">
+            <h2 className="font-bold text-slate-800">Manual Add Items</h2>
+            <div className="grid grid-cols-1 gap-2">
+              <select
+                className="w-full p-3 border rounded-xl outline-none focus:ring-2 focus:ring-blue-500"
+                value={selectedItemId}
+                onChange={e => setSelectedItemId(e.target.value)}
+              >
+                <option value="">Select Item</option>
+                {state.items.map(i => (
+                  <option key={i.id} value={i.id}>{i.name} (Rs {i.rate})</option>
+                ))}
+              </select>
+              <div className="flex gap-2">
+                <div className="flex-1">
+                  <label className="block text-[10px] font-bold text-slate-400 uppercase mb-1 ml-1">Rate</label>
+                  <input type="number" className="w-full p-3 border rounded-xl outline-none" value={selectedRate} onChange={e => setSelectedRate(parseFloat(e.target.value) || 0)} />
                 </div>
-                <div className="flex items-center gap-4">
-                  <span className="font-bold">Rs {item.total.toLocaleString()}</span>
-                  <button type="button" onClick={() => removeItem(index)} className="text-red-500"><i className="fa-solid fa-trash-can"></i></button>
+                <div className="w-24">
+                  <label className="block text-[10px] font-bold text-slate-400 uppercase mb-1 ml-1">Qty</label>
+                  <input type="number" min="1" className="w-full p-3 border rounded-xl outline-none" value={selectedQty} onChange={e => setSelectedQty(parseInt(e.target.value) || 1)} />
                 </div>
               </div>
-            ))}
-            {doc.items.length === 0 && <p className="text-center text-slate-300 py-4 italic">No items added yet</p>}
+              <button type="button" onClick={addItem} disabled={!selectedItemId} className={`w-full py-4 mt-2 text-white font-bold rounded-xl transition-colors ${selectedItemId ? 'bg-slate-800 hover:bg-slate-700' : 'bg-slate-300 cursor-not-allowed'}`}>
+                ADD MANUALLY
+              </button>
+            </div>
           </div>
-          <div className="mt-6 pt-4 border-t-2 border-slate-100 flex justify-between items-center">
-            <span className="text-slate-500 font-bold">TOTAL AMOUNT</span>
-            <span className="text-2xl font-black text-blue-600">Rs {doc.totalAmount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
-          </div>
-        </div>
 
-        <button type="submit" className="w-full py-4 bg-blue-600 text-white font-bold rounded-xl shadow-lg mt-4 sticky bottom-4 z-20">
-          SAVE {type.toUpperCase()}
-        </button>
-      </form>
+          <div className="bg-white p-4 rounded-xl shadow-sm border">
+            <h2 className="font-bold text-slate-800 mb-4">Summary ({doc.items.length} items)</h2>
+            <div className="space-y-3">
+              {doc.items.map((item, index) => (
+                <div key={index} className="flex justify-between items-center py-2 border-b border-slate-50 last:border-0">
+                  <div>
+                    <p className="font-medium text-slate-800">{item.name}</p>
+                    <p className="text-xs text-slate-400">{item.quantity} x Rs {item.rate.toLocaleString()}</p>
+                  </div>
+                  <div className="flex items-center gap-4">
+                    <span className="font-bold">Rs {item.total.toLocaleString()}</span>
+                    <button type="button" onClick={() => removeItem(index)} className="text-red-500"><i className="fa-solid fa-trash-can"></i></button>
+                  </div>
+                </div>
+              ))}
+              {doc.items.length === 0 && <p className="text-center text-slate-300 py-4 italic">No items added yet</p>}
+            </div>
+            <div className="mt-6 pt-4 border-t-2 border-slate-100 flex justify-between items-center">
+              <span className="text-slate-500 font-bold">TOTAL AMOUNT</span>
+              <span className="text-2xl font-black text-blue-600">Rs {doc.totalAmount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+            </div>
+          </div>
+
+          <button type="submit" className="w-full py-4 bg-blue-600 text-white font-bold rounded-xl shadow-lg mt-4 sticky bottom-4 z-20">
+            SAVE {type.toUpperCase()}
+          </button>
+        </form>
+      </div>
     </div>
   );
 };

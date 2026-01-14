@@ -2,6 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { AppState, Item } from '../types';
+import { GoogleGenAI } from "@google/genai";
 
 interface ItemFormProps {
   state: AppState;
@@ -16,6 +17,7 @@ const ItemForm: React.FC<ItemFormProps> = ({ state, onUpdate }) => {
     description: '',
     rate: 0
   });
+  const [isGenerating, setIsGenerating] = useState(false);
 
   useEffect(() => {
     if (id) {
@@ -25,6 +27,30 @@ const ItemForm: React.FC<ItemFormProps> = ({ state, onUpdate }) => {
       }
     }
   }, [id, state.items]);
+
+  const generateDescription = async () => {
+    if (!formData.name) {
+      alert("Please enter an item name first.");
+      return;
+    }
+    setIsGenerating(true);
+    try {
+      const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+      const response = await ai.models.generateContent({
+        model: 'gemini-3-flash-preview',
+        contents: `Generate a professional, concise one-sentence business description for an item named "${formData.name}". Use professional language suitable for an invoice.`,
+      });
+      const text = response.text;
+      if (text) {
+        setFormData(prev => ({ ...prev, description: text.trim() }));
+      }
+    } catch (error) {
+      console.error("AI Error:", error);
+      alert("AI failed to generate description. Check your API key.");
+    } finally {
+      setIsGenerating(false);
+    }
+  };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -57,7 +83,18 @@ const ItemForm: React.FC<ItemFormProps> = ({ state, onUpdate }) => {
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1">Description</label>
+            <div className="flex justify-between items-center mb-1">
+              <label className="block text-sm font-medium text-slate-700">Description</label>
+              <button 
+                type="button"
+                onClick={generateDescription}
+                disabled={isGenerating}
+                className="text-[10px] font-bold text-blue-600 bg-blue-50 px-2 py-1 rounded-lg flex items-center gap-1 hover:bg-blue-100 disabled:opacity-50"
+              >
+                <i className={`fa-solid fa-wand-magic-sparkles ${isGenerating ? 'animate-spin' : ''}`}></i>
+                {isGenerating ? 'GENERATING...' : 'AI IMPROVE'}
+              </button>
+            </div>
             <textarea
               className="w-full p-3 border rounded-xl outline-none focus:ring-2 focus:ring-blue-500"
               rows={3}
@@ -77,7 +114,7 @@ const ItemForm: React.FC<ItemFormProps> = ({ state, onUpdate }) => {
             />
           </div>
         </div>
-        <button type="submit" className="w-full py-4 bg-blue-600 text-white font-bold rounded-xl shadow-lg">
+        <button type="submit" className="w-full py-4 bg-blue-600 text-white font-bold rounded-xl shadow-lg hover:bg-blue-700 transition-colors">
           SAVE ITEM
         </button>
       </form>
