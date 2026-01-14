@@ -74,7 +74,6 @@ const DocumentForm: React.FC<DocumentFormProps> = ({ type, state, onUpdate }) =>
     if (!smartAddText.trim()) return;
     setIsSmartLoading(true);
     try {
-      // Fixed: Always create a new instance before call to ensure latest API key
       const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
       const availableItemsStr = state.items.map(i => `${i.id}: ${i.name}`).join(', ');
       
@@ -85,7 +84,6 @@ const DocumentForm: React.FC<DocumentFormProps> = ({ type, state, onUpdate }) =>
                   Identify which items are being requested and in what quantity.`,
         config: {
           responseMimeType: 'application/json',
-          // Fixed: Added responseSchema for robust JSON structure
           responseSchema: {
             type: Type.ARRAY,
             items: {
@@ -100,7 +98,6 @@ const DocumentForm: React.FC<DocumentFormProps> = ({ type, state, onUpdate }) =>
         }
       });
 
-      // Fixed: Use .text property directly
       const result = JSON.parse(response.text || '[]');
       const newItems: DocumentItem[] = [];
 
@@ -224,10 +221,10 @@ const DocumentForm: React.FC<DocumentFormProps> = ({ type, state, onUpdate }) =>
           </div>
 
           <div className="bg-white p-4 rounded-xl shadow-sm border space-y-4">
-            <h2 className="font-bold text-slate-800">Manual Add Items</h2>
+            <h2 className="font-bold text-slate-800">Manual Item Selection</h2>
             <div className="grid grid-cols-1 gap-2">
               <select
-                className="w-full p-3 border rounded-xl outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full p-3 border rounded-xl outline-none focus:ring-2 focus:ring-blue-500 text-sm"
                 value={selectedItemId}
                 onChange={e => setSelectedItemId(e.target.value)}
               >
@@ -239,15 +236,20 @@ const DocumentForm: React.FC<DocumentFormProps> = ({ type, state, onUpdate }) =>
               <div className="flex gap-2">
                 <div className="flex-1">
                   <label className="block text-[10px] font-bold text-slate-400 uppercase mb-1 ml-1">Rate</label>
-                  <input type="number" className="w-full p-3 border rounded-xl outline-none" value={selectedRate} onChange={e => setSelectedRate(parseFloat(e.target.value) || 0)} />
+                  <input type="number" className="w-full p-3 border rounded-xl outline-none text-sm" value={selectedRate} onChange={e => setSelectedRate(parseFloat(e.target.value) || 0)} />
                 </div>
                 <div className="w-24">
                   <label className="block text-[10px] font-bold text-slate-400 uppercase mb-1 ml-1">Qty</label>
-                  <input type="number" min="1" className="w-full p-3 border rounded-xl outline-none" value={selectedQty} onChange={e => setSelectedQty(parseInt(e.target.value) || 1)} />
+                  <input type="number" min="1" className="w-full p-3 border rounded-xl outline-none text-sm" value={selectedQty} onChange={e => setSelectedQty(parseInt(e.target.value) || 1)} />
                 </div>
               </div>
-              <button type="button" onClick={addItem} disabled={!selectedItemId} className={`w-full py-4 mt-2 text-white font-bold rounded-xl transition-colors ${selectedItemId ? 'bg-slate-800 hover:bg-slate-700' : 'bg-slate-300 cursor-not-allowed'}`}>
-                ADD MANUALLY
+              <button 
+                type="button" 
+                onClick={addItem} 
+                disabled={!selectedItemId} 
+                className={`w-full py-4 mt-2 text-white rounded-xl transition-colors flex items-center justify-center ${selectedItemId ? 'bg-slate-800 hover:bg-slate-700' : 'bg-slate-300 cursor-not-allowed'}`}
+              >
+                <i className="fa-solid fa-plus text-xl"></i>
               </button>
             </div>
           </div>

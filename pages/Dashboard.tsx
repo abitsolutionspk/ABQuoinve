@@ -36,8 +36,6 @@ const Dashboard: React.FC<DashboardProps> = ({ user, state, onLogout }) => {
     e.stopPropagation();
     if (path !== '#') {
       navigate(path);
-      // We trigger print once navigated - in a real app you might pass a state flag
-      // For this implementation, we simply navigate to the list where print is available.
     }
   };
 
@@ -80,7 +78,7 @@ const Dashboard: React.FC<DashboardProps> = ({ user, state, onLogout }) => {
                  <i className={`fa-solid ${section.icon} text-blue-600`}></i>
                  <h3 className="font-bold text-slate-800 uppercase tracking-wide text-sm">{section.name}</h3>
               </div>
-              <div className="flex gap-2">
+              <div className="flex gap-1.5">
                 <button 
                   onClick={(e) => { e.stopPropagation(); navigate(`${section.path}/new`); }}
                   className="w-8 h-8 rounded-lg bg-blue-600 text-white flex items-center justify-center text-xs shadow-sm hover:bg-blue-700"
@@ -90,15 +88,17 @@ const Dashboard: React.FC<DashboardProps> = ({ user, state, onLogout }) => {
                 </button>
                 <button 
                   onClick={(e) => handlePrintList(e, section.path)}
-                  className="px-2 h-8 rounded-lg bg-slate-800 text-white flex items-center justify-center text-[10px] font-bold shadow-sm hover:bg-slate-700"
+                  className="w-8 h-8 rounded-lg bg-slate-800 text-white flex items-center justify-center text-xs shadow-sm hover:bg-slate-700"
+                  title="Print List"
                 >
-                  PRINT LIST
+                  <i className="fa-solid fa-print"></i>
                 </button>
                 <button 
                   onClick={(e) => handlePrintList(e, section.path)}
-                  className="px-2 h-8 rounded-lg bg-slate-800 text-white flex items-center justify-center text-[10px] font-bold shadow-sm hover:bg-slate-700"
+                  className="w-8 h-8 rounded-lg bg-slate-800 text-white flex items-center justify-center text-xs shadow-sm hover:bg-slate-700"
+                  title="PDF List"
                 >
-                  PDF LIST
+                  <i className="fa-solid fa-file-pdf"></i>
                 </button>
               </div>
             </div>

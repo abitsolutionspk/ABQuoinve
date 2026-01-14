@@ -45,92 +45,71 @@ const PrintView: React.FC<PrintViewProps> = ({ state }) => {
       </div>
 
       <div id="print-section" className="a4-container mx-auto bg-white">
-        <div className="flex justify-between items-start mb-12">
+        <div className="flex justify-between items-start mb-10 border-b pb-8">
           <div className="flex items-center gap-4">
-            {state.company.logo && <img src={state.company.logo} alt="Logo" className="w-20 h-20 object-contain rounded" />}
+            {state.company.logo && <img src={state.company.logo} alt="Logo" className="w-16 h-16 object-contain rounded" />}
             <div>
-                <h1 className="text-3xl font-black text-slate-800 uppercase leading-none">{state.company.name}</h1>
-                <p className="text-slate-500 text-sm mt-1">{state.company.address}</p>
-                <p className="text-slate-500 text-sm">{state.company.mobile}</p>
+                <h1 className="text-xl font-bold text-slate-800 uppercase leading-none">{state.company.name}</h1>
+                <p className="text-slate-500 text-[10px] mt-1">{state.company.address}</p>
+                <p className="text-slate-500 text-[10px]">{state.company.mobile}</p>
             </div>
           </div>
           <div className="text-right">
-            <h2 className="text-5xl font-black text-slate-200 uppercase tracking-tighter mb-2">
+            <h2 className="text-2xl font-black text-slate-800 uppercase tracking-tight mb-1">
                 {doc.type}
             </h2>
-            <p className="text-slate-700 font-bold">#{doc.number}</p>
-            <p className="text-slate-500 text-sm">Date: {doc.date}</p>
+            <p className="text-slate-600 font-bold text-xs">#{doc.number}</p>
+            <p className="text-slate-400 text-[10px]">Date: {doc.date}</p>
           </div>
         </div>
 
-        <div className="mb-12 grid grid-cols-2 gap-10">
+        <div className="mb-10 grid grid-cols-2 gap-10">
             <div>
-                <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-3 border-b pb-1">Bill To</p>
-                <h3 className="text-xl font-bold text-slate-800">{customer?.name}</h3>
-                <p className="text-slate-500 mt-2">{customer?.address}</p>
-                <p className="text-slate-500">{customer?.mobile}</p>
-            </div>
-            <div className="text-right flex flex-col justify-end">
-                <div className="bg-slate-50 p-6 rounded-2xl border border-slate-100">
-                    <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-1">Amount Due</p>
-                    <p className="text-4xl font-black text-blue-600">Rs {doc.totalAmount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
-                </div>
+                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2 border-b pb-1">Bill To</p>
+                <h3 className="text-lg font-bold text-slate-800">{customer?.name}</h3>
+                <p className="text-slate-500 text-xs mt-1">{customer?.address}</p>
+                <p className="text-slate-500 text-xs">{customer?.mobile}</p>
             </div>
         </div>
 
-        <table className="w-full mb-12">
+        <table className="w-full mb-10">
             <thead>
-                <tr className="border-b-2 border-slate-800 text-left">
-                    <th className="py-4 text-xs font-bold uppercase tracking-widest text-slate-400">Description</th>
-                    <th className="py-4 text-xs font-bold uppercase tracking-widest text-slate-400 text-right">Rate</th>
-                    <th className="py-4 text-xs font-bold uppercase tracking-widest text-slate-400 text-right">Qty</th>
-                    <th className="py-4 text-xs font-bold uppercase tracking-widest text-slate-400 text-right">Total</th>
+                <tr className="border-b border-slate-300 text-left">
+                    <th className="py-3 text-[10px] font-bold uppercase tracking-widest text-slate-400">Description</th>
+                    <th className="py-3 text-[10px] font-bold uppercase tracking-widest text-slate-400 text-right">Rate</th>
+                    <th className="py-3 text-[10px] font-bold uppercase tracking-widest text-slate-400 text-right">Qty</th>
+                    <th className="py-3 text-[10px] font-bold uppercase tracking-widest text-slate-400 text-right">Total</th>
                 </tr>
             </thead>
-            <tbody className="divide-y divide-slate-100">
+            <tbody className="divide-y divide-slate-100 border-b border-slate-300">
                 {doc.items.map((item, idx) => (
                     <tr key={idx}>
-                        <td className="py-5">
-                            <p className="font-bold text-slate-800">{item.name}</p>
+                        <td className="py-4">
+                            <p className="font-bold text-sm text-slate-800">{item.name}</p>
                         </td>
-                        <td className="py-5 text-right text-slate-600">Rs {item.rate.toLocaleString()}</td>
-                        <td className="py-5 text-right text-slate-600">{item.quantity}</td>
-                        <td className="py-5 text-right font-bold text-slate-800">Rs {item.total.toLocaleString()}</td>
+                        <td className="py-4 text-right text-xs text-slate-600">Rs {item.rate.toLocaleString()}</td>
+                        <td className="py-4 text-right text-xs text-slate-600">{item.quantity}</td>
+                        <td className="py-4 text-right font-bold text-sm text-slate-800">Rs {item.total.toLocaleString()}</td>
                     </tr>
                 ))}
             </tbody>
             <tfoot>
                 <tr>
                     <td colSpan={2}></td>
-                    <td className="py-8 text-right font-bold text-slate-400 uppercase text-xs">Subtotal</td>
-                    <td className="py-8 text-right font-bold text-slate-800">Rs {doc.totalAmount.toLocaleString()}</td>
+                    <td className="py-6 text-right font-bold text-slate-400 uppercase text-[10px]">Subtotal</td>
+                    <td className="py-6 text-right font-bold text-sm text-slate-800">Rs {doc.totalAmount.toLocaleString()}</td>
                 </tr>
-                <tr className="border-t-2 border-slate-800">
+                <tr className="border-t border-slate-300">
                     <td colSpan={2}></td>
-                    <td className="py-4 text-right font-black text-slate-800 uppercase text-lg">Total</td>
-                    <td className="py-4 text-right font-black text-blue-600 text-2xl">Rs {doc.totalAmount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+                    <td className="py-4 text-right font-black text-slate-800 uppercase text-xs">Grand Total</td>
+                    <td className="py-4 text-right font-black text-blue-600 text-xl">Rs {doc.totalAmount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
                 </tr>
             </tfoot>
         </table>
 
-        <div className="mt-20 pt-10 border-t border-slate-100 grid grid-cols-2 gap-10">
-            <div>
-                <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">Terms & Notes</p>
-                <p className="text-xs text-slate-400 leading-relaxed">
-                    1. Please pay within 15 days from the date of invoice.<br/>
-                    2. Make all checks payable to {state.company.name}.<br/>
-                    3. Quotations are valid for 30 days.
-                </p>
-            </div>
-            <div className="text-right flex flex-col items-end justify-end">
-                <div className="w-48 h-20 border-b border-slate-300 mb-2"></div>
-                <p className="text-xs font-bold text-slate-800 uppercase tracking-widest">Authorized Signature</p>
-            </div>
-        </div>
-
-        <div className="mt-auto pt-20 text-center">
-            <p className="text-[10px] text-slate-300 font-bold uppercase tracking-[0.3em]">
-                Generated by AB Solutions Professional Management Suite
+        <div className="mt-auto pt-10 text-center border-t border-slate-100">
+            <p className="text-[8px] text-slate-300 font-bold uppercase tracking-[0.2em]">
+                This is a computer generated document - AB SOLUTIONS
             </p>
         </div>
       </div>
