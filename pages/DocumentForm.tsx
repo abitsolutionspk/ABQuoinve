@@ -133,6 +133,23 @@ const DocumentForm: React.FC<DocumentFormProps> = ({ type, state, onUpdate }) =>
     }
   };
 
+  const updateItemInline = (index: number, field: 'rate' | 'quantity', value: number) => {
+    const updatedItems = [...doc.items];
+    const item = { ...updatedItems[index] };
+    
+    if (field === 'rate') item.rate = value;
+    if (field === 'quantity') item.quantity = value;
+    
+    item.total = item.rate * item.quantity;
+    updatedItems[index] = item;
+
+    setDoc({
+      ...doc,
+      items: updatedItems,
+      totalAmount: updatedItems.reduce((acc, curr) => acc + curr.total, 0)
+    });
+  };
+
   const removeItem = (index: number) => {
     const updatedItems = doc.items.filter((_, i) => i !== index);
     setDoc({
@@ -256,16 +273,38 @@ const DocumentForm: React.FC<DocumentFormProps> = ({ type, state, onUpdate }) =>
 
           <div className="bg-white p-4 rounded-xl shadow-sm border">
             <h2 className="font-bold text-slate-800 mb-4">Summary ({doc.items.length} items)</h2>
-            <div className="space-y-3">
+            <div className="space-y-4">
               {doc.items.map((item, index) => (
-                <div key={index} className="flex justify-between items-center py-2 border-b border-slate-50 last:border-0">
-                  <div>
-                    <p className="font-medium text-slate-800">{item.name}</p>
-                    <p className="text-xs text-slate-400">{item.quantity} x Rs {item.rate.toLocaleString()}</p>
+                <div key={index} className="flex flex-col gap-2 p-3 bg-slate-50 rounded-xl border border-slate-100">
+                  <div className="flex justify-between items-center">
+                    <p className="font-bold text-slate-800">{item.name}</p>
+                    <button type="button" onClick={() => removeItem(index)} className="text-red-500 p-2"><i className="fa-solid fa-trash-can"></i></button>
                   </div>
-                  <div className="flex items-center gap-4">
-                    <span className="font-bold">Rs {item.total.toLocaleString()}</span>
-                    <button type="button" onClick={() => removeItem(index)} className="text-red-500"><i className="fa-solid fa-trash-can"></i></button>
+                  
+                  <div className="flex gap-3 items-end">
+                    <div className="flex-1">
+                      <label className="block text-[10px] font-bold text-slate-400 uppercase mb-1 ml-1">Edit Rate</label>
+                      <input 
+                        type="number" 
+                        className="w-full p-2 border rounded-lg outline-none text-xs bg-white" 
+                        value={item.rate} 
+                        onChange={e => updateItemInline(index, 'rate', parseFloat(e.target.value) || 0)} 
+                      />
+                    </div>
+                    <div className="w-20">
+                      <label className="block text-[10px] font-bold text-slate-400 uppercase mb-1 ml-1">Edit Qty</label>
+                      <input 
+                        type="number" 
+                        min="1" 
+                        className="w-full p-2 border rounded-lg outline-none text-xs bg-white" 
+                        value={item.quantity} 
+                        onChange={e => updateItemInline(index, 'quantity', parseInt(e.target.value) || 1)} 
+                      />
+                    </div>
+                    <div className="text-right pb-2">
+                       <span className="text-[10px] block font-bold text-slate-400 uppercase mb-1">Item Total</span>
+                       <span className="font-black text-slate-900 text-sm">Rs {item.total.toLocaleString()}</span>
+                    </div>
                   </div>
                 </div>
               ))}
