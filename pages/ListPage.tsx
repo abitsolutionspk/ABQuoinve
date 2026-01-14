@@ -2,6 +2,8 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { AppState } from '../types';
+// @ts-ignore
+import html2pdf from 'html2pdf.js';
 
 interface ListPageProps {
   type: 'items' | 'customers' | 'quotations' | 'invoices';
@@ -24,6 +26,20 @@ const ListPage: React.FC<ListPageProps> = ({ type, data, state, onUpdate }) => {
     window.print();
   };
 
+  const handleDownloadPDF = () => {
+    const element = document.getElementById('print-section');
+    if (!element) return;
+    
+    const opt = {
+      margin: 10,
+      filename: `${type}-list-${new Date().toISOString().slice(0,10)}.pdf`,
+      image: { type: 'jpeg', quality: 0.98 },
+      html2canvas: { scale: 2 },
+      jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+    };
+    html2pdf().set(opt).from(element).save();
+  };
+
   const getCustomerName = (id: string) => {
     return state.customers.find(c => c.id === id)?.name || 'Unknown';
   };
@@ -42,13 +58,25 @@ const ListPage: React.FC<ListPageProps> = ({ type, data, state, onUpdate }) => {
           <h1 className="text-xl font-black capitalize tracking-tight text-slate-800">{type} List</h1>
         </div>
         <div className="flex gap-2">
-          <button onClick={() => navigate(`/${type}/new`)} className="bg-blue-600 text-white w-10 h-10 rounded-lg flex items-center justify-center shadow-md hover:bg-blue-700 transition-all">
+          <button 
+            onClick={() => navigate(`/${type}/new`)} 
+            className="bg-blue-600 text-white w-10 h-10 rounded-lg flex items-center justify-center shadow-md hover:bg-blue-700 transition-all"
+            title="Add New"
+          >
             <i className="fa-solid fa-plus"></i>
           </button>
-          <button onClick={handlePrint} className="bg-slate-800 text-white w-10 h-10 rounded-lg flex items-center justify-center shadow-md hover:bg-slate-700 transition-all">
+          <button 
+            onClick={handlePrint} 
+            className="bg-slate-800 text-white w-10 h-10 rounded-lg flex items-center justify-center shadow-md hover:bg-slate-700 transition-all"
+            title="Print List"
+          >
             <i className="fa-solid fa-print"></i>
           </button>
-          <button onClick={handlePrint} className="bg-slate-800 text-white w-10 h-10 rounded-lg flex items-center justify-center shadow-md hover:bg-slate-700 transition-all">
+          <button 
+            onClick={handleDownloadPDF} 
+            className="bg-slate-800 text-white w-10 h-10 rounded-lg flex items-center justify-center shadow-md hover:bg-slate-700 transition-all"
+            title="PDF List"
+          >
             <i className="fa-solid fa-file-pdf"></i>
           </button>
         </div>
@@ -113,9 +141,9 @@ const ListPage: React.FC<ListPageProps> = ({ type, data, state, onUpdate }) => {
                     <button 
                       onClick={() => navigate(`/print/${type === 'quotations' ? 'q' : 'i'}/${item.id}`)}
                       className="w-8 h-8 rounded-lg bg-slate-100 text-slate-600 flex items-center justify-center text-xs hover:bg-slate-800 hover:text-white transition-all shadow-sm"
-                      title="Print"
+                      title="Print View"
                     >
-                      <i className="fa-solid fa-print"></i>
+                      <i className="fa-solid fa-eye"></i>
                     </button>
                   )}
 

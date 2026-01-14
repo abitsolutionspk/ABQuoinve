@@ -2,6 +2,8 @@
 import React, { useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { AppState } from '../types';
+// @ts-ignore
+import html2pdf from 'html2pdf.js';
 
 interface PrintViewProps {
   state: AppState;
@@ -23,6 +25,20 @@ const PrintView: React.FC<PrintViewProps> = ({ state }) => {
     }
   }, [doc]);
 
+  const handleDownloadPDF = () => {
+    const element = document.getElementById('print-section');
+    if (!element || !doc) return;
+    
+    const opt = {
+      margin: 0,
+      filename: `${doc.type}-${doc.number}.pdf`,
+      image: { type: 'jpeg', quality: 0.98 },
+      html2canvas: { scale: 2, useCORS: true },
+      jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+    };
+    html2pdf().set(opt).from(element).save();
+  };
+
   if (!doc) return <div className="p-20 text-center">Document not found</div>;
 
   return (
@@ -35,6 +51,12 @@ const PrintView: React.FC<PrintViewProps> = ({ state }) => {
           <i className="fa-solid fa-arrow-left"></i> Back
         </button>
         <div className="flex gap-3">
+            <button 
+                onClick={handleDownloadPDF} 
+                className="bg-slate-800 text-white px-6 py-2 rounded-lg shadow font-bold flex items-center gap-2"
+            >
+                <i className="fa-solid fa-file-pdf"></i> PDF
+            </button>
             <button 
                 onClick={() => window.print()} 
                 className="bg-blue-600 text-white px-6 py-2 rounded-lg shadow font-bold flex items-center gap-2"
