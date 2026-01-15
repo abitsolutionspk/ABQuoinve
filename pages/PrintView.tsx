@@ -29,12 +29,13 @@ const PrintView: React.FC<PrintViewProps> = ({ state }) => {
     const element = document.getElementById('print-section');
     if (!element || !doc) return;
     
+    // Fix: Explicitly cast image type and jsPDF options to literal types to satisfy html2pdf requirements
     const opt = {
       margin: 0,
       filename: `${doc.type}-${doc.number}.pdf`,
-      image: { type: 'jpeg', quality: 0.98 },
+      image: { type: 'jpeg' as const, quality: 0.98 },
       html2canvas: { scale: 2, useCORS: true },
-      jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+      jsPDF: { unit: 'mm' as const, format: 'a4' as const, orientation: 'portrait' as const }
     };
     html2pdf().set(opt).from(element).save();
   };
@@ -67,7 +68,7 @@ const PrintView: React.FC<PrintViewProps> = ({ state }) => {
       </div>
 
       <div id="print-section" className="a4-container mx-auto bg-white">
-        <div className="flex justify-between items-start mb-10 border-b-2 border-slate-900 pb-8">
+        <div className="flex justify-between items-start mb-6 border-b-2 border-slate-900 pb-6">
           <div className="flex items-center gap-6">
             {state.company.logo && <img src={state.company.logo} alt="Logo" className="w-20 h-20 object-contain rounded" />}
             <div>
@@ -90,15 +91,12 @@ const PrintView: React.FC<PrintViewProps> = ({ state }) => {
           </div>
         </div>
 
-        <div className="mb-1 grid grid-cols-2 gap-1">
-            <div className="bg-slate-50 p-4 rounded-xl border border-slate-100">
-                <p className="text-[10px] font-black text-blue-600 uppercase tracking-widest mb-2 border-b border-blue-100 pb-1">BILLING TO CUSTOMER</p>
-                <h3 className="text-lg font-black text-slate-900">{customer?.name}</h3>
-                <p className="text-slate-600 text-xs mt-1 leading-relaxed">{customer?.address}<i className="fa-solid fa-mobile-screen-button mr-1"></i> {customer?.mobile}</p>
-                <p className="text-slate-900 font-bold text-xs mt-2 italic"><i className="fa-solid fa-mobile-screen-button mr-1"></i> {customer?.mobile}</p>
-            </div>
-            <div className="flex flex-col justify-end text-right">
-                 {/* Empty space for design balance */}
+        <div className="mb-6">
+            <div className="bg-slate-50 p-3 rounded-lg border border-slate-100">
+                <p className="text-[9px] font-black text-blue-600 uppercase tracking-widest mb-1">BILLING TO CUSTOMER</p>
+                <p className="text-xs font-bold text-slate-900">
+                   {customer?.name} <span className="text-slate-300 mx-1">|</span> {customer?.address} <span className="text-slate-300 mx-1">|</span> {customer?.mobile}
+                </p>
             </div>
         </div>
 
