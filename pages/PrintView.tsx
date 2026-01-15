@@ -90,11 +90,11 @@ const PrintView: React.FC<PrintViewProps> = ({ state }) => {
           </div>
         </div>
 
-        <div className="mb-10 grid grid-cols-2 gap-10">
+        <div className="mb-1 grid grid-cols-2 gap-1">
             <div className="bg-slate-50 p-4 rounded-xl border border-slate-100">
                 <p className="text-[10px] font-black text-blue-600 uppercase tracking-widest mb-2 border-b border-blue-100 pb-1">BILLING TO CUSTOMER</p>
                 <h3 className="text-lg font-black text-slate-900">{customer?.name}</h3>
-                <p className="text-slate-600 text-xs mt-1 leading-relaxed">{customer?.address}</p>
+                <p className="text-slate-600 text-xs mt-1 leading-relaxed">{customer?.address}<i className="fa-solid fa-mobile-screen-button mr-1"></i> {customer?.mobile}</p>
                 <p className="text-slate-900 font-bold text-xs mt-2 italic"><i className="fa-solid fa-mobile-screen-button mr-1"></i> {customer?.mobile}</p>
             </div>
             <div className="flex flex-col justify-end text-right">
