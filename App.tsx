@@ -13,19 +13,20 @@ import { User, AppState, Item, Customer, Document, CompanyInfo } from './types';
 
 const INITIAL_STATE: AppState = {
   items: [
-    { id: '1', name: 'Web Design', description: 'Professional UI/UX', rate: 500 },
-    { id: '2', name: 'Consultation', description: 'Business strategy', rate: 100 }
+    { id: '1', name: '550W Solar Panel', description: 'High-efficiency monocrystalline solar panel', rate: 25000 },
+    { id: '2', name: 'Hybrid Inverter 5KW', description: 'Dual output hybrid solar inverter', rate: 185000 }
   ],
   customers: [
-    { id: '1', name: 'John Doe', mobile: '+1234567890', address: '123 Tech St, Silicon Valley' }
+    { id: '1', name: 'Walk-in Customer', mobile: '0000-0000000', address: 'Local Area' }
   ],
   quotations: [],
   invoices: [],
   company: {
-    name: 'AB Solutions',
-    mobile: '+9876543210',
-    address: 'HQ Tower, Suite 101, Business Bay',
-    logo: 'https://picsum.photos/200/200'
+    name: 'Rana Solar System',
+    mobile: '+923006535574, +923126535574',
+    address: 'Islam Pura, St# 3, Jarranwala',
+    ntn: 'A508897-1',
+    logo: 'https://images.unsplash.com/photo-1509391366360-fe58f98c824f?q=80&w=200&h=200&auto=format&fit=crop' // Placeholder logo - user can update via UI
   },
   users: [
     { username: 'Admin', role: 'Admin' },

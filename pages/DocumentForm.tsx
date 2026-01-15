@@ -14,6 +14,8 @@ interface DocumentFormProps {
 const DocumentForm: React.FC<DocumentFormProps> = ({ type, state, onUpdate }) => {
   const navigate = useNavigate();
   const { id } = useParams<{ id: string }>();
+  
+  // Local state for the document
   const [doc, setDoc] = useState<Omit<Document, 'id'>>({
     type,
     number: `${type === 'Quotation' ? 'QT' : 'INV'}-${Date.now().toString().slice(-6)}`,
@@ -23,9 +25,11 @@ const DocumentForm: React.FC<DocumentFormProps> = ({ type, state, onUpdate }) =>
     totalAmount: 0
   });
 
+  // Manual entry states - using string | number to allow empty strings for easier editing
   const [selectedItemId, setSelectedItemId] = useState('');
-  const [selectedQty, setSelectedQty] = useState(1);
-  const [selectedRate, setSelectedRate] = useState<number>(0);
+  const [selectedQty, setSelectedQty] = useState<number | string>(1);
+  const [selectedRate, setSelectedRate] = useState<number | string>(0);
+  
   const [smartAddText, setSmartAddText] = useState('');
   const [isSmartLoading, setIsSmartLoading] = useState(false);
 
@@ -51,12 +55,15 @@ const DocumentForm: React.FC<DocumentFormProps> = ({ type, state, onUpdate }) =>
   const addItem = () => {
     const item = state.items.find(i => i.id === selectedItemId);
     if (item) {
+      const rateNum = typeof selectedRate === 'string' ? (parseFloat(selectedRate) || 0) : selectedRate;
+      const qtyNum = typeof selectedQty === 'string' ? (parseInt(selectedQty) || 0) : selectedQty;
+      
       const newItem: DocumentItem = {
         itemId: item.id,
         name: item.name,
-        rate: selectedRate,
-        quantity: selectedQty,
-        total: selectedRate * selectedQty
+        rate: rateNum,
+        quantity: qtyNum,
+        total: rateNum * qtyNum
       };
       const updatedItems = [...doc.items, newItem];
       setDoc({
@@ -133,12 +140,16 @@ const DocumentForm: React.FC<DocumentFormProps> = ({ type, state, onUpdate }) =>
     }
   };
 
-  const updateItemInline = (index: number, field: 'rate' | 'quantity', value: number) => {
+  // We need to keep the UI state flexible but the data state numeric
+  const updateItemInline = (index: number, field: 'rate' | 'quantity', rawValue: string) => {
     const updatedItems = [...doc.items];
     const item = { ...updatedItems[index] };
     
-    if (field === 'rate') item.rate = value;
-    if (field === 'quantity') item.quantity = value;
+    // Allow the value to be stored as a number in the object, but we treat empty as 0 for calculation
+    const numericValue = rawValue === '' ? 0 : (field === 'rate' ? parseFloat(rawValue) : parseInt(rawValue));
+    
+    if (field === 'rate') item.rate = numericValue;
+    if (field === 'quantity') item.quantity = numericValue;
     
     item.total = item.rate * item.quantity;
     updatedItems[index] = item;
@@ -253,11 +264,21 @@ const DocumentForm: React.FC<DocumentFormProps> = ({ type, state, onUpdate }) =>
               <div className="flex gap-2">
                 <div className="flex-1">
                   <label className="block text-[10px] font-bold text-slate-400 uppercase mb-1 ml-1">Rate</label>
-                  <input type="number" className="w-full p-3 border rounded-xl outline-none text-sm" value={selectedRate} onChange={e => setSelectedRate(parseFloat(e.target.value) || 0)} />
+                  <input 
+                    type="number" 
+                    className="w-full p-3 border rounded-xl outline-none text-sm" 
+                    value={selectedRate} 
+                    onChange={e => setSelectedRate(e.target.value === '' ? '' : parseFloat(e.target.value))} 
+                  />
                 </div>
                 <div className="w-24">
                   <label className="block text-[10px] font-bold text-slate-400 uppercase mb-1 ml-1">Qty</label>
-                  <input type="number" min="1" className="w-full p-3 border rounded-xl outline-none text-sm" value={selectedQty} onChange={e => setSelectedQty(parseInt(e.target.value) || 1)} />
+                  <input 
+                    type="number" 
+                    className="w-full p-3 border rounded-xl outline-none text-sm" 
+                    value={selectedQty} 
+                    onChange={e => setSelectedQty(e.target.value === '' ? '' : parseInt(e.target.value))} 
+                  />
                 </div>
               </div>
               <button 
@@ -287,18 +308,17 @@ const DocumentForm: React.FC<DocumentFormProps> = ({ type, state, onUpdate }) =>
                       <input 
                         type="number" 
                         className="w-full p-2 border rounded-lg outline-none text-xs bg-white" 
-                        value={item.rate} 
-                        onChange={e => updateItemInline(index, 'rate', parseFloat(e.target.value) || 0)} 
+                        value={item.rate === 0 ? '' : item.rate} 
+                        onChange={e => updateItemInline(index, 'rate', e.target.value)} 
                       />
                     </div>
                     <div className="w-20">
                       <label className="block text-[10px] font-bold text-slate-400 uppercase mb-1 ml-1">Edit Qty</label>
                       <input 
                         type="number" 
-                        min="1" 
                         className="w-full p-2 border rounded-lg outline-none text-xs bg-white" 
-                        value={item.quantity} 
-                        onChange={e => updateItemInline(index, 'quantity', parseInt(e.target.value) || 1)} 
+                        value={item.quantity === 0 ? '' : item.quantity} 
+                        onChange={e => updateItemInline(index, 'quantity', e.target.value)} 
                       />
                     </div>
                     <div className="text-right pb-2">

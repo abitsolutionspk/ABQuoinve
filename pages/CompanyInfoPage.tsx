@@ -67,7 +67,17 @@ const CompanyInfoPage: React.FC<CompanyInfoPageProps> = ({ company, onUpdate }) 
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1">Mobile</label>
+              <label className="block text-sm font-medium text-slate-700 mb-1">NTN No</label>
+              <input
+                type="text"
+                className="w-full p-3 border rounded-xl outline-none focus:ring-2 focus:ring-blue-500"
+                value={formData.ntn || ''}
+                placeholder="e.g. A508897-1"
+                onChange={e => setFormData({ ...formData, ntn: e.target.value })}
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-slate-700 mb-1">Mobile / Contact</label>
               <input
                 type="text"
                 required

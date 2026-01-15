@@ -43,6 +43,7 @@ export interface CompanyInfo {
   mobile: string;
   address: string;
   logo: string;
+  ntn?: string;
 }
 
 export interface AppState {

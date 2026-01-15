@@ -67,71 +67,82 @@ const PrintView: React.FC<PrintViewProps> = ({ state }) => {
       </div>
 
       <div id="print-section" className="a4-container mx-auto bg-white">
-        <div className="flex justify-between items-start mb-10 border-b pb-8">
-          <div className="flex items-center gap-4">
-            {state.company.logo && <img src={state.company.logo} alt="Logo" className="w-16 h-16 object-contain rounded" />}
+        <div className="flex justify-between items-start mb-10 border-b-2 border-slate-900 pb-8">
+          <div className="flex items-center gap-6">
+            {state.company.logo && <img src={state.company.logo} alt="Logo" className="w-20 h-20 object-contain rounded" />}
             <div>
-                <h1 className="text-xl font-bold text-slate-800 uppercase leading-none">{state.company.name}</h1>
-                <p className="text-slate-500 text-[10px] mt-1">{state.company.address}</p>
-                <p className="text-slate-500 text-[10px]">{state.company.mobile}</p>
+                <h1 className="text-2xl font-black text-slate-900 uppercase leading-none tracking-tight">{state.company.name}</h1>
+                <p className="text-slate-700 text-xs mt-2 font-medium">{state.company.address}</p>
+                <div className="flex gap-4 mt-1">
+                   <p className="text-slate-600 text-[11px] font-bold"><i className="fa-solid fa-phone-volume mr-1 text-blue-600"></i> {state.company.mobile}</p>
+                </div>
+                {state.company.ntn && (
+                  <p className="text-slate-800 text-[11px] font-black mt-1 uppercase">NTN NO: {state.company.ntn}</p>
+                )}
             </div>
           </div>
           <div className="text-right">
-            <h2 className="text-2xl font-black text-slate-800 uppercase tracking-tight mb-1">
+            <h2 className="text-3xl font-black text-blue-600 uppercase tracking-tighter mb-1">
                 {doc.type}
             </h2>
-            <p className="text-slate-600 font-bold text-xs">#{doc.number}</p>
-            <p className="text-slate-400 text-[10px]">Date: {doc.date}</p>
+            <p className="text-slate-900 font-black text-sm">DOC #: {doc.number}</p>
+            <p className="text-slate-500 text-[11px] font-bold">DATE: {doc.date}</p>
           </div>
         </div>
 
         <div className="mb-10 grid grid-cols-2 gap-10">
-            <div>
-                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2 border-b pb-1">Bill To</p>
-                <h3 className="text-lg font-bold text-slate-800">{customer?.name}</h3>
-                <p className="text-slate-500 text-xs mt-1">{customer?.address}</p>
-                <p className="text-slate-500 text-xs">{customer?.mobile}</p>
+            <div className="bg-slate-50 p-4 rounded-xl border border-slate-100">
+                <p className="text-[10px] font-black text-blue-600 uppercase tracking-widest mb-2 border-b border-blue-100 pb-1">BILLING TO CUSTOMER</p>
+                <h3 className="text-lg font-black text-slate-900">{customer?.name}</h3>
+                <p className="text-slate-600 text-xs mt-1 leading-relaxed">{customer?.address}</p>
+                <p className="text-slate-900 font-bold text-xs mt-2 italic"><i className="fa-solid fa-mobile-screen-button mr-1"></i> {customer?.mobile}</p>
+            </div>
+            <div className="flex flex-col justify-end text-right">
+                 {/* Empty space for design balance */}
             </div>
         </div>
 
         <table className="w-full mb-10">
             <thead>
-                <tr className="border-b border-slate-300 text-left">
-                    <th className="py-3 text-[10px] font-bold uppercase tracking-widest text-slate-400">Description</th>
-                    <th className="py-3 text-[10px] font-bold uppercase tracking-widest text-slate-400 text-right">Rate</th>
-                    <th className="py-3 text-[10px] font-bold uppercase tracking-widest text-slate-400 text-right">Qty</th>
-                    <th className="py-3 text-[10px] font-bold uppercase tracking-widest text-slate-400 text-right">Total</th>
+                <tr className="bg-slate-900 text-white">
+                    <th className="py-3 px-4 text-[10px] font-black uppercase tracking-widest text-left rounded-tl-lg">Item Description</th>
+                    <th className="py-3 px-4 text-[10px] font-black uppercase tracking-widest text-right">Unit Rate</th>
+                    <th className="py-3 px-4 text-[10px] font-black uppercase tracking-widest text-right">Qty</th>
+                    <th className="py-3 px-4 text-[10px] font-black uppercase tracking-widest text-right rounded-tr-lg">Line Total</th>
                 </tr>
             </thead>
-            <tbody className="divide-y divide-slate-100 border-b border-slate-300">
+            <tbody className="divide-y divide-slate-100 border-x border-b border-slate-200">
                 {doc.items.map((item, idx) => (
-                    <tr key={idx}>
-                        <td className="py-4">
-                            <p className="font-bold text-sm text-slate-800">{item.name}</p>
+                    <tr key={idx} className={idx % 2 === 0 ? 'bg-white' : 'bg-slate-50'}>
+                        <td className="py-4 px-4">
+                            <p className="font-black text-sm text-slate-900">{item.name}</p>
                         </td>
-                        <td className="py-4 text-right text-xs text-slate-600">Rs {item.rate.toLocaleString()}</td>
-                        <td className="py-4 text-right text-xs text-slate-600">{item.quantity}</td>
-                        <td className="py-4 text-right font-bold text-sm text-slate-800">Rs {item.total.toLocaleString()}</td>
+                        <td className="py-4 px-4 text-right text-xs font-bold text-slate-700">Rs {item.rate.toLocaleString()}</td>
+                        <td className="py-4 px-4 text-right text-xs font-black text-slate-900">{item.quantity}</td>
+                        <td className="py-4 px-4 text-right font-black text-sm text-slate-900">Rs {item.total.toLocaleString()}</td>
                     </tr>
                 ))}
             </tbody>
             <tfoot>
                 <tr>
                     <td colSpan={2}></td>
-                    <td className="py-6 text-right font-bold text-slate-400 uppercase text-[10px]">Subtotal</td>
-                    <td className="py-6 text-right font-bold text-sm text-slate-800">Rs {doc.totalAmount.toLocaleString()}</td>
+                    <td className="py-6 text-right font-black text-slate-400 uppercase text-[10px] tracking-widest">SUBTOTAL</td>
+                    <td className="py-6 px-4 text-right font-black text-sm text-slate-900">Rs {doc.totalAmount.toLocaleString()}</td>
                 </tr>
-                <tr className="border-t border-slate-300">
+                <tr className="border-t-2 border-slate-900">
                     <td colSpan={2}></td>
-                    <td className="py-4 text-right font-black text-slate-800 uppercase text-xs">Grand Total</td>
-                    <td className="py-4 text-right font-black text-blue-600 text-xl">Rs {doc.totalAmount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+                    <td className="py-4 text-right font-black text-slate-900 uppercase text-xs tracking-widest">GRAND TOTAL</td>
+                    <td className="py-4 px-4 text-right font-black text-blue-600 text-2xl">Rs {doc.totalAmount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
                 </tr>
             </tfoot>
         </table>
 
-        <div className="mt-auto pt-10 text-center border-t border-slate-100">
-            <p className="text-[8px] text-slate-300 font-bold uppercase tracking-[0.2em]">
-                This is a computer generated document - AB SOLUTIONS
+        <div className="mt-20 pt-10 text-center border-t border-slate-100">
+            <p className="text-[9px] text-slate-400 font-black uppercase tracking-[0.3em] mb-2">
+                THANK YOU FOR YOUR BUSINESS
+            </p>
+            <p className="text-[8px] text-slate-300 font-bold uppercase tracking-[0.1em]">
+                This is a computer generated document - RANA SOLAR SYSTEM
             </p>
         </div>
       </div>
