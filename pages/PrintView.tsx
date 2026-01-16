@@ -29,7 +29,6 @@ const PrintView: React.FC<PrintViewProps> = ({ state }) => {
     const element = document.getElementById('print-section');
     if (!element || !doc) return;
     
-    // Fix: Explicitly cast image type and jsPDF options to literal types to satisfy html2pdf requirements
     const opt = {
       margin: 0,
       filename: `${doc.type}-${doc.number}.pdf`,
@@ -47,20 +46,20 @@ const PrintView: React.FC<PrintViewProps> = ({ state }) => {
       <div className="max-w-4xl mx-auto mb-6 flex justify-between items-center px-4">
         <button 
           onClick={() => navigate(-1)} 
-          className="bg-white px-4 py-2 rounded-lg shadow text-slate-600 font-bold flex items-center gap-2"
+          className="bg-white px-4 py-2 rounded-lg shadow text-slate-600 font-bold flex items-center gap-2 hover:bg-slate-50 transition-colors"
         >
           <i className="fa-solid fa-arrow-left"></i> Back
         </button>
         <div className="flex gap-3">
             <button 
                 onClick={handleDownloadPDF} 
-                className="bg-slate-800 text-white px-6 py-2 rounded-lg shadow font-bold flex items-center gap-2"
+                className="bg-slate-800 text-white px-6 py-2 rounded-lg shadow font-bold flex items-center gap-2 hover:bg-slate-700 transition-colors"
             >
                 <i className="fa-solid fa-file-pdf"></i> PDF
             </button>
             <button 
                 onClick={() => window.print()} 
-                className="bg-blue-600 text-white px-6 py-2 rounded-lg shadow font-bold flex items-center gap-2"
+                className="bg-blue-600 text-white px-6 py-2 rounded-lg shadow font-bold flex items-center gap-2 hover:bg-blue-700 transition-colors"
             >
                 <i className="fa-solid fa-print"></i> Print Now
             </button>
@@ -70,7 +69,16 @@ const PrintView: React.FC<PrintViewProps> = ({ state }) => {
       <div id="print-section" className="a4-container mx-auto bg-white">
         <div className="flex justify-between items-start mb-6 border-b-2 border-slate-900 pb-6">
           <div className="flex items-center gap-6">
-            {state.company.logo && <img src={state.company.logo} alt="Logo" className="w-20 h-20 object-contain rounded" />}
+            <div className="w-24 h-24 overflow-hidden rounded bg-slate-50 flex items-center justify-center">
+                <img 
+                  src={state.company.logo || './rslogo.png'} 
+                  alt="Rana Solar System" 
+                  className="w-full h-full object-contain" 
+                  onError={(e) => {
+                    (e.target as HTMLImageElement).src = 'https://placehold.co/200x200?text=RS+Logo';
+                  }}
+                />
+            </div>
             <div>
                 <h1 className="text-2xl font-black text-slate-900 uppercase leading-none tracking-tight">{state.company.name}</h1>
                 <p className="text-slate-700 text-xs mt-2 font-medium">{state.company.address}</p>

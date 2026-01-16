@@ -11,6 +11,9 @@ import CompanyInfoPage from './pages/CompanyInfoPage';
 import PrintView from './pages/PrintView';
 import { User, AppState, Item, Customer, Document, CompanyInfo } from './types';
 
+// Default logo file path
+const RS_LOGO_PATH = './rslogo.png';
+
 const INITIAL_STATE: AppState = {
   items: [
     { id: '1', name: '550W Solar Panel', description: 'High-efficiency monocrystalline solar panel', rate: 25000 },
@@ -26,7 +29,7 @@ const INITIAL_STATE: AppState = {
     mobile: '+923006535574, +923126535574',
     address: 'Islam Pura, St# 3, Jarranwala',
     ntn: 'A508897-1',
-    logo: 'https://images.unsplash.com/photo-1509391366360-fe58f98c824f?q=80&w=200&h=200&auto=format&fit=crop' // Placeholder logo - user can update via UI
+    logo: RS_LOGO_PATH
   },
   users: [
     { username: 'Admin', role: 'Admin' },
@@ -42,7 +45,15 @@ const App: React.FC = () => {
 
   const [state, setState] = useState<AppState>(() => {
     const saved = localStorage.getItem('ab_solutions_state');
-    return saved ? JSON.parse(saved) : INITIAL_STATE;
+    if (saved) {
+      const parsed = JSON.parse(saved);
+      // Migration: Update existing users to the new logo path if they are using old placeholders
+      if (parsed.company && (!parsed.company.logo || parsed.company.logo === 'rslogo.png' || parsed.company.logo === '/rslogo.png')) {
+        parsed.company.logo = RS_LOGO_PATH;
+      }
+      return parsed;
+    }
+    return INITIAL_STATE;
   });
 
   useEffect(() => {

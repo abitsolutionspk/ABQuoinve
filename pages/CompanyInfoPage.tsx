@@ -32,18 +32,21 @@ const CompanyInfoPage: React.FC<CompanyInfoPageProps> = ({ company, onUpdate }) 
   return (
     <div className="min-h-screen bg-slate-50 flex flex-col">
       <header className="bg-white border-b px-4 py-4 flex items-center gap-3">
-        <button onClick={() => navigate('/')} className="text-slate-500"><i className="fa-solid fa-arrow-left"></i></button>
+        <button onClick={() => navigate('/')} className="text-slate-600 p-2 hover:bg-slate-100 rounded-lg"><i className="fa-solid fa-arrow-left"></i></button>
         <h1 className="text-xl font-bold">Company Information</h1>
       </header>
       <form onSubmit={handleSubmit} className="p-4 space-y-6">
         <div className="bg-white p-6 rounded-2xl shadow-sm space-y-6 border border-slate-100">
           <div className="flex flex-col items-center gap-4">
             <div className="w-32 h-32 rounded-2xl border-2 border-dashed border-slate-200 overflow-hidden flex items-center justify-center bg-slate-50 relative group">
-              {formData.logo ? (
-                <img src={formData.logo} alt="Logo" className="w-full h-full object-contain" />
-              ) : (
-                <i className="fa-solid fa-image text-slate-300 text-3xl"></i>
-              )}
+              <img 
+                src={formData.logo || './rslogo.png'} 
+                alt="Rana Solar Logo" 
+                className="w-full h-full object-contain p-2" 
+                onError={(e) => {
+                  (e.target as HTMLImageElement).src = 'https://placehold.co/200x200?text=RS+Logo';
+                }}
+              />
               <input
                 type="file"
                 accept="image/*"
@@ -52,7 +55,7 @@ const CompanyInfoPage: React.FC<CompanyInfoPageProps> = ({ company, onUpdate }) 
               />
               <div className="absolute bottom-0 inset-x-0 bg-black/50 text-white text-[10px] text-center py-1 opacity-0 group-hover:opacity-100 transition-opacity">Change Logo</div>
             </div>
-            <p className="text-xs text-slate-400">Click to upload brand logo</p>
+            <p className="text-xs text-slate-400 font-medium">Default Brand: rslogo.png</p>
           </div>
 
           <div className="space-y-4">
@@ -98,7 +101,7 @@ const CompanyInfoPage: React.FC<CompanyInfoPageProps> = ({ company, onUpdate }) 
             </div>
           </div>
         </div>
-        <button type="submit" className="w-full py-4 bg-slate-800 text-white font-bold rounded-xl shadow-lg">
+        <button type="submit" className="w-full py-4 bg-slate-900 text-white font-bold rounded-xl shadow-lg hover:bg-slate-800 transition-colors">
           SAVE CHANGES
         </button>
       </form>
